@@ -19,6 +19,8 @@ import Vehicles from './pages/Vehicles';
 import ManageVehicles from './pages/ManageVehicles';
 import AddVehicle from './pages/AddVehicle';
 import PayoutInfo from './pages/PayoutInfo';
+import AddBankAccount from './pages/AddBankAccount';
+import BankAccountDetails from './pages/BankAccountDetails';
 import ActiveTrip from './pages/ActiveTrip';
 import TripAgenda from './pages/TripAgenda';
 import TripSupport from './pages/TripSupport';
@@ -1046,8 +1048,38 @@ const App: React.FC = () => {
               className="absolute inset-0 z-50 bg-white"
             >
               <SkeletonLoader show={!isBackNav && !visitedViews.has(AppView.PAYOUT_INFO)}>
-                <PayoutInfo bankAccount={userData.bankAccount} onBack={() => handleSetView(AppView.ACCOUNT, true)} />
+                <PayoutInfo 
+                  bankAccount={userData.bankAccount} 
+                  onBack={() => handleSetView(AppView.ACCOUNT, true)} 
+                  onAddBankAccount={() => handleSetView(AppView.ADD_BANK_ACCOUNT)}
+                />
               </SkeletonLoader>
+            </div>
+          )}
+        </AnimatePresence>
+
+        <AnimatePresence>
+          {currentView === AppView.ADD_BANK_ACCOUNT && (
+            <div 
+              className="absolute inset-0 z-50 bg-white"
+            >
+              <AddBankAccount 
+                onBack={() => handleSetView(AppView.PAYOUT_INFO, true)}
+                onNext={() => handleSetView(AppView.BANK_ACCOUNT_DETAILS)}
+              />
+            </div>
+          )}
+        </AnimatePresence>
+
+        <AnimatePresence>
+          {currentView === AppView.BANK_ACCOUNT_DETAILS && (
+            <div 
+              className="absolute inset-0 z-50 bg-white"
+            >
+              <BankAccountDetails 
+                onBack={() => handleSetView(AppView.ADD_BANK_ACCOUNT, true)}
+                onNext={() => handleSetView(AppView.PAYOUT_INFO, true)}
+              />
             </div>
           )}
         </AnimatePresence>

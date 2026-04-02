@@ -4,6 +4,7 @@ import React from 'react';
 interface PayoutInfoProps {
   bankAccount: string;
   onBack: () => void;
+  onAddBankAccount?: () => void;
 }
 
 const BankIcon = () => (
@@ -12,7 +13,7 @@ const BankIcon = () => (
   </div>
 );
 
-const PayoutInfo: React.FC<PayoutInfoProps> = ({ bankAccount, onBack }) => {
+const PayoutInfo: React.FC<PayoutInfoProps> = ({ bankAccount, onBack, onAddBankAccount }) => {
   return (
     <div className="h-full bg-white flex flex-col">
       {/* Header */}
@@ -31,7 +32,10 @@ const PayoutInfo: React.FC<PayoutInfoProps> = ({ bankAccount, onBack }) => {
           Como você prefere que suas transferências sejam feitas?
         </h2>
 
-        <div className="flex items-start gap-3 py-3 active:bg-gray-50 -mx-2 px-2 rounded-xl transition-colors cursor-pointer group">
+        <div 
+          onClick={onAddBankAccount}
+          className="flex items-start gap-3 py-3 active:bg-gray-50 -mx-2 px-2 rounded-xl transition-colors cursor-pointer group"
+        >
           <div className="w-[32px] h-[32px] bg-[#276EF1] rounded flex items-center justify-center shrink-0 mt-0.5">
             <i className="fa-solid fa-building-columns text-white text-[14px]"></i>
           </div>
