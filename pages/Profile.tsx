@@ -13,6 +13,7 @@ interface ProfileProps {
   onAccount?: () => void;
   onOpportunities?: () => void;
   onReferrals?: () => void;
+  onPayoutInfo?: () => void;
   onBack: () => void;
 }
 
@@ -28,6 +29,7 @@ const Profile: React.FC<ProfileProps> = ({
   onAccount, 
   onOpportunities, 
   onReferrals, 
+  onPayoutInfo,
   onBack 
 }) => {
   return (
@@ -94,7 +96,10 @@ const Profile: React.FC<ProfileProps> = ({
           Uber Pro
         </h3>
         
-        <h3 className="text-[32px] font-black text-black leading-none tracking-tight active:opacity-50 transition-opacity cursor-pointer">
+        <h3 
+          onClick={onPayoutInfo}
+          className="text-[32px] font-black text-black leading-none tracking-tight active:opacity-50 transition-opacity cursor-pointer"
+        >
           Carteira
         </h3>
         

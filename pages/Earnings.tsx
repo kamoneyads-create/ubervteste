@@ -2,7 +2,11 @@
 import React, { useMemo } from 'react';
 import { BarChart, Bar, XAxis, ResponsiveContainer, Cell, ReferenceLine } from 'recharts';
 
-const Earnings: React.FC = () => {
+interface EarningsProps {
+  onBack: () => void;
+}
+
+const Earnings: React.FC<EarningsProps> = ({ onBack }) => {
   const weekData = useMemo(() => {
     const now = new Date();
     const day = now.getDay();
@@ -44,7 +48,7 @@ const Earnings: React.FC = () => {
     <div className="h-full bg-white flex flex-col overflow-y-auto pb-0 transition-colors duration-300">
       {/* Header */}
       <div className="px-4 pt-10 pb-4 flex items-center justify-between sticky top-0 bg-white z-10 border-b border-gray-50">
-        <button className="p-2">
+        <button onClick={onBack} className="p-2 active:opacity-40 transition-opacity">
           <i className="fa-solid fa-arrow-left text-xl text-black"></i>
         </button>
         <div className="flex items-center gap-1 text-black">

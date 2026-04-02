@@ -823,7 +823,7 @@ const App: React.FC = () => {
               className="absolute inset-0 z-10 bg-white"
             >
               <SkeletonLoader show={!isBackNav && !visitedViews.has(AppView.EARNINGS)}>
-                <Earnings />
+                <Earnings onBack={() => handleSetView(AppView.DASHBOARD, true)} />
               </SkeletonLoader>
             </div>
           )}
@@ -865,6 +865,7 @@ const App: React.FC = () => {
               onAccount={() => handleSetView(AppView.ACCOUNT)} 
               onOpportunities={() => handleSetView(AppView.OPPORTUNITIES)} 
               onReferrals={() => handleSetView(AppView.REFERRALS)} 
+              onPayoutInfo={() => handleSetView(AppView.PAYOUT_INFO)}
               onBack={() => handleSetView(AppView.DASHBOARD, true)} 
             />
           </div>
