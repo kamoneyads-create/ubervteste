@@ -43,7 +43,8 @@ const STORAGE_KEYS = {
   CURRENT_USER_ID: 'UBER_V5_CURRENT_USER_ID',
   USER_DATA_PREFIX: 'UBER_V5_USER_DATA_',
   ONLINE: 'UBER_V5_ONLINE_STATUS',
-  IS_LOGGED_IN: 'UBER_V5_AUTH'
+  IS_LOGGED_IN: 'UBER_V5_AUTH',
+  LAST_ACTIVITY: 'UBER_V5_LAST_ACTIVITY'
 };
 
 const getUserDataKey = (id: string) => `${STORAGE_KEYS.USER_DATA_PREFIX}${id}`;
@@ -119,12 +120,29 @@ const SplashScreen: React.FC<{ onComplete: () => void }> = ({ onComplete }) => {
 const App: React.FC = () => {
   const [isLocked, setIsLocked] = useState(() => {
     // Verifica se o bloqueio está ativado para a sessão atual
-    const currentId = localStorage.getItem('UBER_V5_CURRENT_USER_ID') || 'Sessão 1';
-    const savedData = localStorage.getItem(`UBER_V5_USER_DATA_${currentId}`);
+    const currentId = localStorage.getItem(STORAGE_KEYS.CURRENT_USER_ID) || 'Sessão 1';
+    const savedData = localStorage.getItem(getUserDataKey(currentId));
+    const lastActivity = localStorage.getItem(STORAGE_KEYS.LAST_ACTIVITY);
+    
     if (savedData) {
       try {
         const parsed = JSON.parse(savedData);
-        return parsed.isSecurityLockEnabled !== false;
+        
+        // 1. Se o bloqueio de segurança estiver ativado, bloqueia sempre ao abrir
+        if (parsed.isSecurityLockEnabled !== false) return true;
+        
+        // 2. Se o bloqueio de segurança estiver desativado, verifica a inatividade
+        if (lastActivity && parsed.inactivityLockTime !== 999999) {
+          const lastTime = parseInt(lastActivity, 10);
+          const diffMinutes = (Date.now() - lastTime) / (1000 * 60);
+          const lockTime = parsed.inactivityLockTime || 10;
+          
+          if (diffMinutes >= lockTime) {
+            return true;
+          }
+        }
+        
+        return false;
       } catch (e) {
         return true;
       }
@@ -150,6 +168,16 @@ const App: React.FC = () => {
   const [pendingSessionId, setPendingSessionId] = useState<string | null>(null);
   const isVideoLoadingRef = useRef(false);
   
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') {
+        localStorage.setItem(STORAGE_KEYS.LAST_ACTIVITY, Date.now().toString());
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, []);
+
   useEffect(() => {
     const themeColorMeta = document.querySelector('meta[name="theme-color"]');
     if (themeColorMeta) {
@@ -243,6 +271,10 @@ const App: React.FC = () => {
       
       const resetTimer = () => {
         if (timeoutId) clearTimeout(timeoutId);
+        
+        // Atualiza o timestamp da última atividade no localStorage
+        localStorage.setItem(STORAGE_KEYS.LAST_ACTIVITY, Date.now().toString());
+
         const timeInMs = (userData.inactivityLockTime || 10) * 60 * 1000;
         
         // Se for "Nunca" (999999), não ativa o timer
@@ -344,6 +376,7 @@ const App: React.FC = () => {
       return finalState;
     });
     localStorage.setItem(STORAGE_KEYS.IS_LOGGED_IN, 'true');
+    localStorage.setItem(STORAGE_KEYS.LAST_ACTIVITY, Date.now().toString());
     setIsLoggedIn(true);
     preloadVerificationVideo(true);
   };
@@ -438,6 +471,7 @@ const App: React.FC = () => {
     setUserData(data);
     setCurrentUserIdentifier(id);
     localStorage.setItem(STORAGE_KEYS.CURRENT_USER_ID, id);
+    localStorage.setItem(STORAGE_KEYS.LAST_ACTIVITY, Date.now().toString());
     setIsLoggedIn(true);
     localStorage.setItem(STORAGE_KEYS.IS_LOGGED_IN, 'true');
     
@@ -1256,6 +1290,7 @@ const App: React.FC = () => {
       <SecurityLock 
         onUnlock={() => {
           setIsLocked(false);
+          localStorage.setItem(STORAGE_KEYS.LAST_ACTIVITY, Date.now().toString());
           if (pendingSessionId) {
             completeSwitchSession(pendingSessionId);
             setPendingSessionId(null);
