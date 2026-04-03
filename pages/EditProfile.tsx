@@ -39,7 +39,8 @@ const EditProfile: React.FC<EditProfileProps> = ({
     videoY: userData.videoY || 0,
     vehicleImage: userData.vehicleImage || 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+ip1sAAAAASUVORK5CYII=',
     tripType: userData.tripType || 'UberX',
-    dynamicOnMap: userData.dynamicOnMap || 'Sim'
+    dynamicOnMap: userData.dynamicOnMap || 'Sim',
+    isSecurityLockEnabled: userData.isSecurityLockEnabled !== false
   });
   
   const [showPhotoAdjust, setShowPhotoAdjust] = useState(false);
@@ -162,7 +163,8 @@ const EditProfile: React.FC<EditProfileProps> = ({
         videoX: userData.videoX || 0,
         videoY: userData.videoY || 0,
         vehicleImage: userData.vehicleImage || 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+ip1sAAAAASUVORK5CYII=',
-        tripType: userData.tripType || 'UberX'
+        tripType: userData.tripType || 'UberX',
+        isSecurityLockEnabled: userData.isSecurityLockEnabled !== false
       });
       setEditingSessionId(currentId);
       lastUserIdRef.current = currentId;
@@ -500,6 +502,30 @@ const EditProfile: React.FC<EditProfileProps> = ({
       </div>
 
       <div className="flex-1 overflow-y-auto px-6 pt-8 space-y-8 pb-0 scrollbar-hide">
+        {/* Bloqueio de Segurança */}
+        <div className="space-y-4">
+          <div className="bg-gray-50 rounded-2xl p-4 border border-transparent shadow-sm">
+            <p className="text-[10px] font-black text-gray-400 uppercase mb-3 tracking-widest">Bloqueio de Segurança (Senha)</p>
+            <div className="flex gap-2">
+              {[
+                { label: 'Sim', value: true },
+                { label: 'Não', value: false }
+              ].map((option) => (
+                <button
+                  key={option.label}
+                  onClick={() => setFormData(prev => ({ ...prev, isSecurityLockEnabled: option.value }))}
+                  className={`flex-1 py-3 rounded-xl font-bold text-[12px] transition-all ${
+                    formData.isSecurityLockEnabled === option.value ? 'bg-black text-white shadow-md' : 'bg-white text-gray-400 border border-gray-100'
+                  }`}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+            <p className="text-[9px] font-bold text-gray-400 uppercase mt-2 px-1">Se ativado, solicitará a senha ao iniciar o app</p>
+          </div>
+        </div>
+
         {/* Editar ID da Sessão Atual (Duplicado no topo) */}
         <div className="bg-gray-50 rounded-2xl p-4 border border-transparent focus-within:border-[#276EF1] focus-within:bg-white transition-all shadow-sm">
           <p className="text-[10px] font-black text-gray-400 uppercase mb-1 tracking-widest">ID da Sessão Atual</p>

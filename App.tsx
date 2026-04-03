@@ -31,6 +31,7 @@ import UberAccount from './pages/UberAccount';
 import AppSettings from './pages/AppSettings';
 import DarkModeSettings from './pages/DarkModeSettings';
 import ResetPassword from './pages/ResetPassword';
+import SecurityLock from './pages/SecurityLock';
 import BottomNav from './components/BottomNav';
 import LoadingScreen from './components/LoadingScreen';
 import SkeletonLoader from './components/SkeletonLoader';
@@ -65,6 +66,7 @@ const DEFAULT_USER_DATA = {
   missionReward: 220,
   dynamicOnMap: 'Não',
   darkModeOption: DarkModeOption.ALWAYS_OFF,
+  isSecurityLockEnabled: true,
   vehicles: [
     {
       id: 'v1',
@@ -114,6 +116,20 @@ const SplashScreen: React.FC<{ onComplete: () => void }> = ({ onComplete }) => {
 };
 
 const App: React.FC = () => {
+  const [isLocked, setIsLocked] = useState(() => {
+    // Verifica se o bloqueio está ativado para a sessão atual
+    const currentId = localStorage.getItem('UBER_V5_CURRENT_USER_ID') || 'Sessão 1';
+    const savedData = localStorage.getItem(`UBER_V5_USER_DATA_${currentId}`);
+    if (savedData) {
+      try {
+        const parsed = JSON.parse(savedData);
+        return parsed.isSecurityLockEnabled !== false;
+      } catch (e) {
+        return true;
+      }
+    }
+    return true; // Padrão é true
+  });
   const [showSplash, setShowSplash] = useState(true);
   const [isBackNav, setIsBackNav] = useState(false);
   const [isLoginLoading, setIsLoginLoading] = useState(false);
@@ -186,6 +202,7 @@ const App: React.FC = () => {
         if (parsed.cancellationRate === undefined) parsed.cancellationRate = 0;
         if (parsed.dynamicOnMap === undefined) parsed.dynamicOnMap = 'Sim';
         if (parsed.darkModeOption === undefined) parsed.darkModeOption = DarkModeOption.ALWAYS_OFF;
+        if (parsed.isSecurityLockEnabled === undefined) parsed.isSecurityLockEnabled = true;
         return parsed;
       }
     }
@@ -1188,6 +1205,10 @@ const App: React.FC = () => {
   };
 
   const showNav = isLoggedIn && (!isOnline || currentView !== AppView.DASHBOARD) && ![AppView.LOGIN, AppView.PASSWORD, AppView.VERIFICATION, AppView.ACTIVE_TRIP, AppView.TRIP_AGENDA, AppView.TRIP_SUPPORT, AppView.TRIP_CHAT, AppView.EDIT_PROFILE].includes(currentView);
+
+  if (isLocked) {
+    return <SecurityLock onUnlock={() => setIsLocked(false)} />;
+  }
 
   return (
     <div className={`h-screen w-full flex flex-col ${isDarkMode ? 'bg-[#121212]' : 'bg-white'} relative pb-11 transition-colors duration-300`}>
