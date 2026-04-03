@@ -40,11 +40,13 @@ const EditProfile: React.FC<EditProfileProps> = ({
     vehicleImage: userData.vehicleImage || 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+ip1sAAAAASUVORK5CYII=',
     tripType: userData.tripType || 'UberX',
     dynamicOnMap: userData.dynamicOnMap || 'Sim',
-    isSecurityLockEnabled: userData.isSecurityLockEnabled !== false
+    isSecurityLockEnabled: userData.isSecurityLockEnabled !== false,
+    inactivityLockTime: userData.inactivityLockTime || 10
   });
   
   const [showPhotoAdjust, setShowPhotoAdjust] = useState(false);
   const [showVideoAdjust, setShowVideoAdjust] = useState(false);
+  const [showInactivityOptions, setShowInactivityOptions] = useState(false);
   
   // Drag to pan logic
   const [isDragging, setIsDragging] = useState(false);
@@ -164,7 +166,9 @@ const EditProfile: React.FC<EditProfileProps> = ({
         videoY: userData.videoY || 0,
         vehicleImage: userData.vehicleImage || 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+ip1sAAAAASUVORK5CYII=',
         tripType: userData.tripType || 'UberX',
-        isSecurityLockEnabled: userData.isSecurityLockEnabled !== false
+        dynamicOnMap: userData.dynamicOnMap || 'Sim',
+        isSecurityLockEnabled: userData.isSecurityLockEnabled !== false,
+        inactivityLockTime: userData.inactivityLockTime || 10
       });
       setEditingSessionId(currentId);
       lastUserIdRef.current = currentId;
@@ -523,6 +527,63 @@ const EditProfile: React.FC<EditProfileProps> = ({
               ))}
             </div>
             <p className="text-[9px] font-bold text-gray-400 uppercase mt-2 px-1">Se ativado, solicitará a senha ao iniciar o app</p>
+            
+            <div className="mt-6 pt-4 border-t border-gray-100">
+              <p className="text-[10px] font-black text-gray-400 uppercase mb-3 tracking-widest">Bloqueio por Inatividade</p>
+              
+              <div className="relative">
+                <button
+                  onClick={() => setShowInactivityOptions(!showInactivityOptions)}
+                  className="w-full flex justify-between items-center bg-white border border-gray-100 rounded-xl py-3 px-4 shadow-sm active:bg-gray-50 transition-all"
+                >
+                  <span className="font-bold text-[13px] text-black">
+                    {[
+                      { label: '1 min', value: 1 },
+                      { label: '5 min', value: 5 },
+                      { label: '10 min', value: 10 },
+                      { label: '30 min', value: 30 },
+                      { label: '1 hora', value: 60 },
+                      { label: 'Nunca', value: 999999 }
+                    ].find(o => o.value === (formData.inactivityLockTime || 10))?.label || '10 min'}
+                  </span>
+                  <i className={`fa-solid fa-chevron-down text-[10px] text-gray-400 transition-transform duration-300 ${showInactivityOptions ? 'rotate-180' : ''}`}></i>
+                </button>
+
+                <AnimatePresence>
+                  {showInactivityOptions && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-100 rounded-2xl shadow-xl z-50 overflow-hidden"
+                    >
+                      {[
+                        { label: '1 min', value: 1 },
+                        { label: '5 min', value: 5 },
+                        { label: '10 min', value: 10 },
+                        { label: '30 min', value: 30 },
+                        { label: '1 hora', value: 60 },
+                        { label: 'Nunca', value: 999999 }
+                      ].map((option) => (
+                        <button
+                          key={option.label}
+                          onClick={() => {
+                            setFormData(prev => ({ ...prev, inactivityLockTime: option.value }));
+                            setShowInactivityOptions(false);
+                          }}
+                          className={`w-full text-left py-3 px-5 font-bold text-[12px] transition-all hover:bg-gray-50 border-b border-gray-50 last:border-0 ${
+                            formData.inactivityLockTime === option.value ? 'text-[#276EF1] bg-blue-50/30' : 'text-gray-500'
+                          }`}
+                        >
+                          {option.label}
+                        </button>
+                      ))}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+              <p className="text-[9px] font-bold text-gray-400 uppercase mt-2 px-1">Bloqueia o app após o tempo selecionado sem uso</p>
+            </div>
           </div>
         </div>
 

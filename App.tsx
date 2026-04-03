@@ -67,6 +67,7 @@ const DEFAULT_USER_DATA = {
   dynamicOnMap: 'Não',
   darkModeOption: DarkModeOption.ALWAYS_OFF,
   isSecurityLockEnabled: true,
+  inactivityLockTime: 10,
   vehicles: [
     {
       id: 'v1',
@@ -204,6 +205,7 @@ const App: React.FC = () => {
         if (parsed.dynamicOnMap === undefined) parsed.dynamicOnMap = 'Sim';
         if (parsed.darkModeOption === undefined) parsed.darkModeOption = DarkModeOption.ALWAYS_OFF;
         if (parsed.isSecurityLockEnabled === undefined) parsed.isSecurityLockEnabled = true;
+        if (parsed.inactivityLockTime === undefined) parsed.inactivityLockTime = 10;
         return parsed;
       }
     }
@@ -234,6 +236,34 @@ const App: React.FC = () => {
       return () => clearInterval(interval);
     }
   }, [userData.darkModeOption]);
+
+  useEffect(() => {
+    if (!isLocked) {
+      let timeoutId: NodeJS.Timeout;
+      
+      const resetTimer = () => {
+        if (timeoutId) clearTimeout(timeoutId);
+        const timeInMs = (userData.inactivityLockTime || 10) * 60 * 1000;
+        
+        // Se for "Nunca" (999999), não ativa o timer
+        if (userData.inactivityLockTime === 999999) return;
+
+        timeoutId = setTimeout(() => {
+          setIsLocked(true);
+        }, timeInMs);
+      };
+
+      const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'];
+      events.forEach(event => document.addEventListener(event, resetTimer));
+      
+      resetTimer();
+
+      return () => {
+        if (timeoutId) clearTimeout(timeoutId);
+        events.forEach(event => document.removeEventListener(event, resetTimer));
+      };
+    }
+  }, [isLocked, userData.inactivityLockTime]);
 
   // Efeito de pré-carregamento ultra-rápido ao iniciar o App (durante Splash Screen)
   useEffect(() => {
