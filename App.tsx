@@ -386,13 +386,14 @@ const App: React.FC = () => {
     });
   };
 
-  const switchSession = (id: string) => {
+  const switchSession = (id: string, bypassLock: boolean = false) => {
     const saved = localStorage.getItem(getUserDataKey(id));
     if (saved) {
       const parsed = JSON.parse(saved);
       
       // Se a sessão de destino tiver bloqueio, mostra a tela de senha antes de trocar
-      if (parsed.isSecurityLockEnabled !== false) {
+      // A MENOS que bypassLock seja true (para novas sessões)
+      if (!bypassLock && parsed.isSecurityLockEnabled !== false) {
         setPendingSessionId(id);
         setIsLocked(true);
         return;

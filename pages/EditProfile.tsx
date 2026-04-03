@@ -9,7 +9,7 @@ interface EditProfileProps {
   onSave: (data: any) => void;
   onBack: () => void;
   onDeleteVehicle?: () => void;
-  onSwitchSession: (id: string) => void;
+  onSwitchSession: (id: string, bypassLock?: boolean) => void;
   onRenameSession: (oldId: string, newId: string) => void;
   onAddSession: (id: string, data?: any) => void;
 }
@@ -214,7 +214,7 @@ const EditProfile: React.FC<EditProfileProps> = ({
     if (newSessionName.trim()) {
       const data = duplicate ? { ...userData, ...formData } : undefined;
       onAddSession(newSessionName.trim(), data);
-      onSwitchSession(newSessionName.trim());
+      onSwitchSession(newSessionName.trim(), true);
       setNewSessionName('');
       loadSessions();
     }
