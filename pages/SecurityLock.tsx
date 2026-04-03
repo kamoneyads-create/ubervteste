@@ -35,7 +35,7 @@ const SecurityLock: React.FC<SecurityLockProps> = ({ onUnlock }) => {
         
         <div className="text-center space-y-2">
           <h1 className="text-white text-2xl font-black tracking-tight">Acesso Bloqueado</h1>
-          <p className="text-gray-400 text-sm font-medium">Insira a senha para iniciar o aplicativo</p>
+          <p className="text-gray-400 text-sm font-medium">Insira a senha para iniciar</p>
         </div>
 
         <form onSubmit={handleSubmit} className="w-full space-y-4">

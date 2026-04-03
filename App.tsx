@@ -146,6 +146,7 @@ const App: React.FC = () => {
   const [preloadedVideoUrl, setPreloadedVideoUrl] = useState<string | null>(null);
   const [visitedViews, setVisitedViews] = useState<Set<AppView>>(new Set());
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [pendingSessionId, setPendingSessionId] = useState<string | null>(null);
   const isVideoLoadingRef = useRef(false);
   
   useEffect(() => {
@@ -389,19 +390,32 @@ const App: React.FC = () => {
     const saved = localStorage.getItem(getUserDataKey(id));
     if (saved) {
       const parsed = JSON.parse(saved);
-      setUserData(parsed);
-      setCurrentUserIdentifier(id);
-      localStorage.setItem(STORAGE_KEYS.CURRENT_USER_ID, id);
-      setIsLoggedIn(true);
-      localStorage.setItem(STORAGE_KEYS.IS_LOGGED_IN, 'true');
       
-      // Limpa cache de vídeo para forçar recarregamento da nova sessão
-      if (preloadedVideoUrl) {
-        URL.revokeObjectURL(preloadedVideoUrl);
-        setPreloadedVideoUrl(null);
+      // Se a sessão de destino tiver bloqueio, mostra a tela de senha antes de trocar
+      if (parsed.isSecurityLockEnabled !== false) {
+        setPendingSessionId(id);
+        setIsLocked(true);
+        return;
       }
-      preloadVerificationVideo(true);
+      
+      completeSwitchSession(id, parsed);
     }
+  };
+
+  const completeSwitchSession = (id: string, parsedData?: any) => {
+    const data = parsedData || JSON.parse(localStorage.getItem(getUserDataKey(id)) || '{}');
+    setUserData(data);
+    setCurrentUserIdentifier(id);
+    localStorage.setItem(STORAGE_KEYS.CURRENT_USER_ID, id);
+    setIsLoggedIn(true);
+    localStorage.setItem(STORAGE_KEYS.IS_LOGGED_IN, 'true');
+    
+    // Limpa cache de vídeo para forçar recarregamento da nova sessão
+    if (preloadedVideoUrl) {
+      URL.revokeObjectURL(preloadedVideoUrl);
+      setPreloadedVideoUrl(null);
+    }
+    preloadVerificationVideo(true);
   };
 
   const renameSession = (oldId: string, newId: string) => {
@@ -1207,7 +1221,17 @@ const App: React.FC = () => {
   const showNav = isLoggedIn && (!isOnline || currentView !== AppView.DASHBOARD) && ![AppView.LOGIN, AppView.PASSWORD, AppView.VERIFICATION, AppView.ACTIVE_TRIP, AppView.TRIP_AGENDA, AppView.TRIP_SUPPORT, AppView.TRIP_CHAT, AppView.EDIT_PROFILE].includes(currentView);
 
   if (isLocked) {
-    return <SecurityLock onUnlock={() => setIsLocked(false)} />;
+    return (
+      <SecurityLock 
+        onUnlock={() => {
+          setIsLocked(false);
+          if (pendingSessionId) {
+            completeSwitchSession(pendingSessionId);
+            setPendingSessionId(null);
+          }
+        }} 
+      />
+    );
   }
 
   return (
