@@ -180,18 +180,10 @@ const App: React.FC = () => {
 
   useEffect(() => {
     const themeColorMeta = document.querySelector('meta[name="theme-color"]');
-    const statusBarMeta = document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]');
-    
     if (themeColorMeta) {
-      if (showSplash) {
-        themeColorMeta.setAttribute('content', '#000000');
-        if (statusBarMeta) statusBarMeta.setAttribute('content', 'black');
-      } else {
-        themeColorMeta.setAttribute('content', isDarkMode ? '#121212' : '#ffffff');
-        if (statusBarMeta) statusBarMeta.setAttribute('content', isDarkMode ? 'black' : 'default');
-      }
+      themeColorMeta.setAttribute('content', '#000000');
     }
-  }, [showSplash, isDarkMode]);
+  }, []);
   
   const lastRequestIdsRef = useRef<string[]>([]);
   const lastTripIndexRef = useRef<number | undefined>(undefined);
