@@ -180,18 +180,10 @@ const App: React.FC = () => {
 
   useEffect(() => {
     const themeColorMeta = document.querySelector('meta[name="theme-color"]');
-    const statusBarMeta = document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]');
-    
     if (themeColorMeta) {
-      if (showSplash) {
-        themeColorMeta.setAttribute('content', '#000000');
-        if (statusBarMeta) statusBarMeta.setAttribute('content', 'black');
-      } else {
-        themeColorMeta.setAttribute('content', isDarkMode ? '#121212' : '#ffffff');
-        if (statusBarMeta) statusBarMeta.setAttribute('content', isDarkMode ? 'black' : 'default');
-      }
+      themeColorMeta.setAttribute('content', '#000000');
     }
-  }, [showSplash, isDarkMode]);
+  }, []);
   
   const lastRequestIdsRef = useRef<string[]>([]);
   const lastTripIndexRef = useRef<number | undefined>(undefined);
@@ -1309,10 +1301,10 @@ const App: React.FC = () => {
   }
 
   return (
-    <div className={`h-screen w-full flex flex-col ${isDarkMode ? 'bg-[#121212]' : 'bg-white'} relative pb-11 transition-colors duration-300`}>
+    <div className="h-screen w-full flex flex-col bg-black relative pb-11 transition-colors duration-300 pt-[env(safe-area-inset-top)]">
       {showSplash && <SplashScreen onComplete={() => setShowSplash(false)} />}
       
-      <main className={`flex-1 relative ${isDarkMode ? 'bg-[#121212]' : 'bg-[#F3F3F7]'} transition-colors duration-300`}>{renderView()}</main>
+      <main className={`flex-1 relative ${isDarkMode ? 'bg-[#121212]' : 'bg-[#F3F3F7]'} transition-colors duration-300 overflow-hidden`}>{renderView()}</main>
       {showNav && <BottomNav currentView={currentView} onNavigate={handleSetView} isDarkMode={isDarkMode} />}
     </div>
   );

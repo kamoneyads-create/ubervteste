@@ -688,7 +688,7 @@ const Dashboard: React.FC<DashboardProps> = ({
       
       <div className={`flex-1 flex flex-col relative ${!isOnline ? 'overflow-y-auto scrollbar-hide' : 'overflow-hidden'}`}>
         {!isOnline && (
-          <motion.div variants={itemVariants} className="pt-[calc(env(safe-area-inset-top)+1rem)] px-6 pb-6 bg-white flex-shrink-0 z-10">
+          <motion.div variants={itemVariants} className="pt-4 px-6 pb-6 bg-white flex-shrink-0 z-10">
             <div className="flex justify-between items-start">
               <div className="flex-1 pr-4">
                 <h1 className="text-[32px] font-black text-black leading-tight tracking-tight mb-1">Preço dinâmico vigente</h1>
@@ -720,7 +720,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                 initial={{ y: -60, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ delay: 0.6, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-                className="absolute top-[calc(env(safe-area-inset-top)+1rem)] left-6 z-50 pointer-events-none"
+                className="absolute top-4 left-6 z-50 pointer-events-none"
               >
               <button onClick={() => setIsOnline(false)} className="w-16 h-16 bg-white rounded-full shadow-2xl flex items-center justify-center pointer-events-auto active:scale-90 transition-transform text-black"><HomeIcon /></button>
             </motion.div>
@@ -728,7 +728,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                 initial={{ y: -60, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ delay: 0.9, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-                className="absolute top-[calc(env(safe-area-inset-top)+1rem)] left-0 right-0 flex justify-center z-50 pointer-events-none"
+                className="absolute top-4 left-0 right-0 flex justify-center z-50 pointer-events-none"
               >
               <div className="bg-black rounded-full px-6 py-4 flex items-center gap-2 shadow-2xl border border-white/5 pointer-events-auto cursor-pointer active:scale-95 transition-transform">
                 <span className="text-[#0E8345] text-[24px] font-black tracking-tight">R$</span>
@@ -739,7 +739,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                 initial={{ y: -60, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ delay: 1.2, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-                className="absolute top-[calc(env(safe-area-inset-top)+1rem)] right-6 z-50 pointer-events-none"
+                className="absolute top-4 right-6 z-50 pointer-events-none"
               >
               <button className="w-16 h-16 bg-white rounded-full shadow-2xl flex items-center justify-center pointer-events-auto active:scale-90 transition-transform text-black"><SearchIcon size={28} /></button>
             </motion.div>
