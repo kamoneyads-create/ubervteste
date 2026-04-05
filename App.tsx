@@ -719,567 +719,740 @@ const App: React.FC = () => {
   }, [dispatchTrigger, newRequest === null, acceptedTrip === null]);
 
   const renderView = () => {
-    if (isLoginLoading) return <LoadingScreen />;
-
-    if (!isLoggedIn) {
-      return (
-        <div className="relative h-full w-full bg-white overflow-hidden">
-          <AnimatePresence>
-            {currentView === AppView.LOGIN && (
-              <div
-                key="login"
-                className="absolute inset-0"
-              >
-                <Login 
-                  onContinue={() => {
-                    setIsLoginLoading(true);
-                    const activeId = currentUserIdentifier || 'Sessão 1';
-                    const saved = localStorage.getItem(getUserDataKey(activeId));
-                    if (saved) {
-                      setUserData(JSON.parse(saved));
-                    } else {
-                      setUserData(DEFAULT_USER_DATA);
-                      localStorage.setItem(getUserDataKey(activeId), JSON.stringify(DEFAULT_USER_DATA));
-                    }
-                    setTimeout(() => {
-                      setIsLoginLoading(false);
-                      handleSetView(AppView.PASSWORD);
-                    }, 5000);
-                  }} 
-                  onFindAccount={() => {
-                    setIsLoggedIn(true);
-                    handleSetView(AppView.EDIT_PROFILE);
-                  }}
-                />
-              </div>
-            )}
-          </AnimatePresence>
-
-          <AnimatePresence>
-            {currentView === AppView.PASSWORD && (
-              <div
-                key="password"
-                className="absolute inset-0 z-10"
-              >
-                <PasswordLogin 
-                  userName={userData.name} 
-                  onBack={() => handleSetView(AppView.LOGIN, true)} 
-                  onForgotPassword={() => handleSetView(AppView.RESET_PASSWORD)}
-                  onNext={() => { 
-                    if (document.activeElement instanceof HTMLElement) {
-                      document.activeElement.blur();
-                    }
-                    window.scrollTo(0, 0);
-                    setShowSplash(true); 
-                    setTimeout(() => {
-                      setIsLoggedIn(true); 
-                      localStorage.setItem(STORAGE_KEYS.IS_LOGGED_IN, 'true');
-                      localStorage.setItem(STORAGE_KEYS.CURRENT_USER_ID, currentUserIdentifier);
-                      handleSetView(AppView.DASHBOARD); 
-                    }, 100);
-                  }} 
-                />
-              </div>
-            )}
-          </AnimatePresence>
-
-          <AnimatePresence>
-            {currentView === AppView.RESET_PASSWORD && (
-              <div
-                key="reset-password"
-                className="absolute inset-0 z-20 bg-white"
-              >
-                <SkeletonLoader show={!isBackNav && !visitedViews.has(AppView.RESET_PASSWORD)}>
-                  <ResetPassword 
-                    onBack={() => handleSetView(AppView.PASSWORD, true)}
-                    onUpdate={() => {
-                      handleSetView(AppView.PASSWORD, true);
+    return (
+      <AnimatePresence mode="wait">
+        {isLoginLoading ? (
+          <motion.div 
+            key="loading-screen"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="absolute inset-0 z-[9999]"
+          >
+            <LoadingScreen />
+          </motion.div>
+        ) : !isLoggedIn ? (
+          <motion.div 
+            key="logged-out-container"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="absolute inset-0 bg-white overflow-hidden"
+          >
+            <AnimatePresence mode="wait">
+              {currentView === AppView.LOGIN && (
+                <motion.div
+                  key="login"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="absolute inset-0 bg-white"
+                >
+                  <Login 
+                    onContinue={() => {
+                      setIsLoginLoading(true);
+                      const activeId = currentUserIdentifier || 'Sessão 1';
+                      const saved = localStorage.getItem(getUserDataKey(activeId));
+                      if (saved) {
+                        setUserData(JSON.parse(saved));
+                      } else {
+                        setUserData(DEFAULT_USER_DATA);
+                        localStorage.setItem(getUserDataKey(activeId), JSON.stringify(DEFAULT_USER_DATA));
+                      }
+                      setTimeout(() => {
+                        setIsLoginLoading(false);
+                        handleSetView(AppView.PASSWORD);
+                      }, 5000);
+                    }} 
+                    onFindAccount={() => {
+                      setIsLoggedIn(true);
+                      handleSetView(AppView.EDIT_PROFILE);
                     }}
                   />
-                </SkeletonLoader>
-              </div>
-            )}
-          </AnimatePresence>
-        </div>
-      );
-    }
+                </motion.div>
+              )}
+            </AnimatePresence>
 
-    return (
-      <>
-        <div className={`absolute inset-0 ${currentView === AppView.DASHBOARD ? 'z-10 visible' : 'z-0 invisible pointer-events-none'}`}>
-          <Dashboard 
-            isOnline={isOnline} 
-            setIsOnline={handleSetOnline} 
-            isConnecting={isConnecting}
-            onPreloadVerification={preloadVerificationVideo}
-            activeRequest={newRequest} 
-            isAccepting={isAccepting}
-            currentCoords={currentCoords}
-            userData={userData}
-            onAccept={() => {
-              if (newRequest && !isAccepting) {
-                setIsAccepting(true);
-                setAcceptedTrip(newRequest);
-                // Restaurado para 3000ms conforme solicitado
-                setTimeout(() => {
-                  setNewRequest(null);
-                  setIsAccepting(false);
-                  handleSetView(AppView.ACTIVE_TRIP);
-                }, 3000);
-              }
-            }} 
-            onDecline={() => {
-              setNewRequest(null);
-              // Decrement acceptance rate by 1% (min 0)
-              const currentRate = userData.acceptanceRate || 100;
-              persistUserData({ acceptanceRate: Math.max(0, currentRate - 1) });
-            }} 
-            userCity={userData.city} 
-            missionProgress={userData.missionProgress || 0}
-            missionGoal={userData.missionGoal || 30}
-            missionReward={userData.missionReward || 220}
-            currentView={currentView} 
-            onNavigate={handleSetView}
-            showSplash={showSplash}
-          />
-        </div>
+            <AnimatePresence mode="wait">
+              {currentView === AppView.PASSWORD && (
+                <motion.div
+                  key="password"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="absolute inset-0 z-10 bg-white"
+                >
+                  <PasswordLogin 
+                    userName={userData.name} 
+                    onBack={() => handleSetView(AppView.LOGIN, true)} 
+                    onForgotPassword={() => handleSetView(AppView.RESET_PASSWORD)}
+                    onNext={() => { 
+                      if (document.activeElement instanceof HTMLElement) {
+                        document.activeElement.blur();
+                      }
+                      window.scrollTo(0, 0);
+                      setShowSplash(true); 
+                      setTimeout(() => {
+                        setIsLoggedIn(true); 
+                        localStorage.setItem(STORAGE_KEYS.IS_LOGGED_IN, 'true');
+                        localStorage.setItem(STORAGE_KEYS.CURRENT_USER_ID, currentUserIdentifier);
+                        handleSetView(AppView.DASHBOARD); 
+                      }, 100);
+                    }} 
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
 
-        {currentView === AppView.ACTIVE_TRIP && acceptedTrip && (
-          <div 
-            key="active-trip"
-            className="absolute inset-0 z-[200]"
+            <AnimatePresence mode="wait">
+              {currentView === AppView.RESET_PASSWORD && (
+                <motion.div
+                  key="reset-password"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="absolute inset-0 z-20 bg-white"
+                >
+                  <SkeletonLoader show={!isBackNav && !visitedViews.has(AppView.RESET_PASSWORD)}>
+                    <ResetPassword 
+                      onBack={() => handleSetView(AppView.PASSWORD, true)}
+                      onUpdate={() => {
+                        handleSetView(AppView.PASSWORD, true);
+                      }}
+                    />
+                  </SkeletonLoader>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </motion.div>
+        ) : (
+          <motion.div 
+            key="logged-in-container"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="absolute inset-0"
           >
-            <ActiveTrip 
-              trip={acceptedTrip} 
-              onEndTrip={() => {
-                setAcceptedTrip(null);
-                handleSetView(AppView.DASHBOARD, true);
-              }} 
-              onOpenAgenda={() => handleSetView(AppView.TRIP_AGENDA)}
-              userCity={userData.city} 
-              currentCoords={currentCoords}
-              userData={userData}
-            />
-          </div>
-        )}
-
-        <AnimatePresence>
-          {currentView === AppView.TRIP_AGENDA && acceptedTrip && (
-            <div 
-              className="absolute inset-0 z-[60] bg-[#F3F3F7]"
-            >
-              <TripAgenda 
-                trip={acceptedTrip} 
-                onBack={() => handleSetView(AppView.ACTIVE_TRIP, true)}
-                onStopNewRequests={() => {
-                  // Logic to stop new requests could be added here
-                  handleSetView(AppView.ACTIVE_TRIP, true);
-                }}
-                onOpenSupport={() => handleSetView(AppView.TRIP_SUPPORT)}
-              />
-            </div>
-          )}
-        </AnimatePresence>
-
-        <AnimatePresence>
-          {currentView === AppView.TRIP_SUPPORT && acceptedTrip && (
-            <div 
-              className="absolute inset-0 z-[70] bg-[#F3F3F7]"
-            >
-              <TripSupport 
-                trip={acceptedTrip} 
-                onBack={() => handleSetView(AppView.TRIP_AGENDA, true)}
-                onCancelTrip={() => {
-                  setAcceptedTrip(null);
-                  handleSetView(AppView.DASHBOARD, true);
-                  // Increment cancellation rate by 1% (max 100)
-                  const currentRate = userData.cancellationRate || 0;
-                  persistUserData({ cancellationRate: Math.min(100, currentRate + 1) });
-                }}
-                onOpenChat={() => handleSetView(AppView.TRIP_CHAT)}
-              />
-            </div>
-          )}
-        </AnimatePresence>
-
-        <AnimatePresence>
-          {currentView === AppView.TRIP_CHAT && acceptedTrip && (
-            <div 
-              className="absolute inset-0 z-[80] bg-[#F3F3F7]"
-            >
-              <TripChat 
-                trip={acceptedTrip} 
-                onBack={() => handleSetView(AppView.TRIP_SUPPORT, true)}
-              />
-            </div>
-          )}
-        </AnimatePresence>
-        
-        <AnimatePresence>
-          {currentView === AppView.EARNINGS && (
-            <div 
-              className="absolute inset-0 z-10 bg-white"
-            >
-              <SkeletonLoader show={!isBackNav && !visitedViews.has(AppView.EARNINGS)}>
-                <Earnings onBack={() => handleSetView(AppView.DASHBOARD, true)} />
-              </SkeletonLoader>
-            </div>
-          )}
-        </AnimatePresence>
-
-        <AnimatePresence>
-          {currentView === AppView.INBOX && (
-            <div 
-              className="absolute inset-0 z-10 bg-white"
-            >
-              <SkeletonLoader show={!isBackNav && !visitedViews.has(AppView.INBOX)}>
-                <Inbox />
-              </SkeletonLoader>
-            </div>
-          )}
-        </AnimatePresence>
-
-        {currentView === AppView.PROFILE && (
-          <div 
-            key="profile-view-container"
-            className="absolute inset-0 z-10 bg-white"
-          >
-            <Profile 
-              userName={userData.name} 
-              profileImage={userData.profileImage} 
-              profileImageScale={userData.profileImageScale}
-              profileImageX={userData.profileImageX}
-              profileImageY={userData.profileImageY}
-              onLogout={() => { 
-                localStorage.removeItem(STORAGE_KEYS.IS_LOGGED_IN);
-                localStorage.removeItem(STORAGE_KEYS.CURRENT_USER_ID);
-                setIsLoggedIn(false); 
-                setCurrentUserIdentifier('');
-                setUserData(DEFAULT_USER_DATA);
-                handleSetView(AppView.LOGIN); 
-              }} 
-              onDetail={() => handleSetView(AppView.PROFILE_DETAIL)} 
-              onEdit={() => handleSetView(AppView.EDIT_PROFILE)} 
-              onAccount={() => handleSetView(AppView.ACCOUNT)} 
-              onOpportunities={() => handleSetView(AppView.OPPORTUNITIES)} 
-              onReferrals={() => handleSetView(AppView.REFERRALS)} 
-              onPayoutInfo={() => handleSetView(AppView.PAYOUT_INFO)}
-              onBack={() => handleSetView(AppView.DASHBOARD, true)} 
-            />
-          </div>
-        )}
-
-        {currentView === AppView.VERIFICATION && (
-          <div 
-            key="verification-screen"
-            className="absolute inset-0 z-[100] bg-white"
-          >
-            <SkeletonLoader show={!isBackNav && !visitedViews.has(AppView.VERIFICATION)}>
-              <Verification 
-                onContinue={handleVerificationSuccess} 
-                onCancel={() => {
-                  if (preloadedVideoUrl) {
-                    URL.revokeObjectURL(preloadedVideoUrl);
-                    setPreloadedVideoUrl(null);
-                  }
-                  handleSetView(AppView.DASHBOARD, true);
-                }} 
-                preloadedVideoUrl={preloadedVideoUrl}
-                profileImage={userData.profileImage}
-                profileImageScale={userData.profileImageScale}
-                profileImageX={userData.profileImageX}
-                profileImageY={userData.profileImageY}
-                videoScale={userData.videoScale}
-                videoX={userData.videoX}
-                videoY={userData.videoY}
-              />
-            </SkeletonLoader>
-          </div>
-        )}
-        <AnimatePresence>
-          {currentView === AppView.PROFILE_DETAIL && (
-            <div 
-              className="absolute inset-0 z-50 bg-white"
-            >
-              <SkeletonLoader show={!isBackNav && !visitedViews.has(AppView.PROFILE_DETAIL)}>
-                <ProfileDetail 
-                  userName={userData.name} 
-                  profileImage={userData.profileImage} 
-                  profileImageScale={userData.profileImageScale}
-                  profileImageX={userData.profileImageX}
-                  profileImageY={userData.profileImageY}
-                  acceptanceRate={userData.acceptanceRate}
-                  cancellationRate={userData.cancellationRate}
-                  onBack={() => handleSetView(AppView.PROFILE, true)} 
-                  onPublicProfile={() => handleSetView(AppView.PUBLIC_PROFILE)} 
-                />
-              </SkeletonLoader>
-            </div>
-          )}
-        </AnimatePresence>
-
-        <AnimatePresence>
-          {currentView === AppView.PUBLIC_PROFILE && (
-            <div 
-              className="absolute inset-0 z-50 bg-white"
-            >
-              <SkeletonLoader show={!isBackNav && !visitedViews.has(AppView.PUBLIC_PROFILE)}>
-                <PublicProfile 
-                  userName={userData.name} 
-                  profileImage={userData.profileImage} 
-                  profileImageScale={userData.profileImageScale}
-                  profileImageX={userData.profileImageX}
-                  profileImageY={userData.profileImageY}
-                  city={userData.city} 
-                  vehicle={userData.vehicle} 
-                  language={userData.language} 
-                  onBack={() => handleSetView(AppView.PROFILE_DETAIL, true)} 
-                />
-              </SkeletonLoader>
-            </div>
-          )}
-        </AnimatePresence>
-
-        {currentView === AppView.EDIT_PROFILE && (
-          <div 
-            key="edit-profile-view-container"
-            className="absolute inset-0 z-50 bg-white"
-          >
-            <EditProfile 
-              userData={userData} 
-              onSave={(data) => { 
-                persistUserData(data); 
-                // handleSetView(AppView.PROFILE); // Removido para permanecer na página
-              }} 
-              onSwitchSession={switchSession}
-              onRenameSession={renameSession}
-              onAddSession={addSession}
-              onDeleteVehicle={() => {
-                const activeId = userData.vehicles.find((v: any) => v.active)?.id;
-                if (activeId) {
-                  deleteVehicle(activeId);
-                  handleSetView(AppView.PROFILE, true);
-                }
+            <motion.div 
+              initial={false}
+              animate={{ 
+                opacity: currentView === AppView.DASHBOARD ? 1 : 0,
+                zIndex: currentView === AppView.DASHBOARD ? 10 : 0
               }}
-              onBack={() => handleSetView(AppView.PROFILE, true)} 
-            />
-          </div>
+              transition={{ duration: 0.2 }}
+              className="absolute inset-0 bg-white"
+              style={{ pointerEvents: currentView === AppView.DASHBOARD ? 'auto' : 'none' }}
+            >
+              <Dashboard 
+                isOnline={isOnline} 
+                setIsOnline={handleSetOnline} 
+                isConnecting={isConnecting}
+                onPreloadVerification={preloadVerificationVideo}
+                activeRequest={newRequest} 
+                isAccepting={isAccepting}
+                currentCoords={currentCoords}
+                userData={userData}
+                onAccept={() => {
+                  if (newRequest && !isAccepting) {
+                    setIsAccepting(true);
+                    setAcceptedTrip(newRequest);
+                    // Restaurado para 3000ms conforme solicitado
+                    setTimeout(() => {
+                      setNewRequest(null);
+                      setIsAccepting(false);
+                      handleSetView(AppView.ACTIVE_TRIP);
+                    }, 3000);
+                  }
+                }} 
+                onDecline={() => {
+                  setNewRequest(null);
+                  // Decrement acceptance rate by 1% (min 0)
+                  const currentRate = userData.acceptanceRate || 100;
+                  persistUserData({ acceptanceRate: Math.max(0, currentRate - 1) });
+                }} 
+                userCity={userData.city} 
+                missionProgress={userData.missionProgress || 0}
+                missionGoal={userData.missionGoal || 30}
+                missionReward={userData.missionReward || 220}
+                currentView={currentView} 
+                onNavigate={handleSetView}
+                showSplash={showSplash}
+              />
+            </motion.div>
+
+            <AnimatePresence>
+              {currentView === AppView.ACTIVE_TRIP && acceptedTrip && (
+                <motion.div 
+                  key="active-trip"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="absolute inset-0 z-[200] bg-[#F3F3F7]"
+                >
+                  <ActiveTrip 
+                    trip={acceptedTrip} 
+                    onEndTrip={() => {
+                      setAcceptedTrip(null);
+                      handleSetView(AppView.DASHBOARD, true);
+                    }} 
+                    onOpenAgenda={() => handleSetView(AppView.TRIP_AGENDA)}
+                    userCity={userData.city} 
+                    currentCoords={currentCoords}
+                    userData={userData}
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            <AnimatePresence>
+              {currentView === AppView.TRIP_AGENDA && acceptedTrip && (
+                <motion.div 
+                  key="trip-agenda"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="absolute inset-0 z-[60] bg-[#F3F3F7]"
+                >
+                  <TripAgenda 
+                    trip={acceptedTrip} 
+                    onBack={() => handleSetView(AppView.ACTIVE_TRIP, true)}
+                    onStopNewRequests={() => {
+                      // Logic to stop new requests could be added here
+                      handleSetView(AppView.ACTIVE_TRIP, true);
+                    }}
+                    onOpenSupport={() => handleSetView(AppView.TRIP_SUPPORT)}
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            <AnimatePresence>
+              {currentView === AppView.TRIP_SUPPORT && acceptedTrip && (
+                <motion.div 
+                  key="trip-support"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="absolute inset-0 z-[70] bg-[#F3F3F7]"
+                >
+                  <TripSupport 
+                    trip={acceptedTrip} 
+                    onBack={() => handleSetView(AppView.TRIP_AGENDA, true)}
+                    onCancelTrip={() => {
+                      setAcceptedTrip(null);
+                      handleSetView(AppView.DASHBOARD, true);
+                      // Increment cancellation rate by 1% (max 100)
+                      const currentRate = userData.cancellationRate || 0;
+                      persistUserData({ cancellationRate: Math.min(100, currentRate + 1) });
+                    }}
+                    onOpenChat={() => handleSetView(AppView.TRIP_CHAT)}
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            <AnimatePresence>
+              {currentView === AppView.TRIP_CHAT && acceptedTrip && (
+                <motion.div 
+                  key="trip-chat"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="absolute inset-0 z-[80] bg-[#F3F3F7]"
+                >
+                  <TripChat 
+                    trip={acceptedTrip} 
+                    onBack={() => handleSetView(AppView.TRIP_SUPPORT, true)}
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
+            
+            <AnimatePresence>
+              {currentView === AppView.EARNINGS && (
+                <motion.div 
+                  key="earnings-view"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="absolute inset-0 z-10 bg-white"
+                >
+                  <SkeletonLoader show={!isBackNav && !visitedViews.has(AppView.EARNINGS)}>
+                    <Earnings onBack={() => handleSetView(AppView.DASHBOARD, true)} />
+                  </SkeletonLoader>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            <AnimatePresence>
+              {currentView === AppView.INBOX && (
+                <motion.div 
+                  key="inbox-view"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="absolute inset-0 z-10 bg-white"
+                >
+                  <SkeletonLoader show={!isBackNav && !visitedViews.has(AppView.INBOX)}>
+                    <Inbox />
+                  </SkeletonLoader>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            <AnimatePresence>
+              {currentView === AppView.PROFILE && (
+                <motion.div 
+                  key="profile-view-container"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="absolute inset-0 z-10 bg-white"
+                >
+                  <Profile 
+                    userName={userData.name} 
+                    profileImage={userData.profileImage} 
+                    profileImageScale={userData.profileImageScale}
+                    profileImageX={userData.profileImageX}
+                    profileImageY={userData.profileImageY}
+                    onLogout={() => { 
+                      localStorage.removeItem(STORAGE_KEYS.IS_LOGGED_IN);
+                      localStorage.removeItem(STORAGE_KEYS.CURRENT_USER_ID);
+                      setIsLoggedIn(false); 
+                      setCurrentUserIdentifier('');
+                      setUserData(DEFAULT_USER_DATA);
+                      handleSetView(AppView.LOGIN); 
+                    }} 
+                    onDetail={() => handleSetView(AppView.PROFILE_DETAIL)} 
+                    onEdit={() => handleSetView(AppView.EDIT_PROFILE)} 
+                    onAccount={() => handleSetView(AppView.ACCOUNT)} 
+                    onOpportunities={() => handleSetView(AppView.OPPORTUNITIES)} 
+                    onReferrals={() => handleSetView(AppView.REFERRALS)} 
+                    onPayoutInfo={() => handleSetView(AppView.PAYOUT_INFO)}
+                    onBack={() => handleSetView(AppView.DASHBOARD, true)} 
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            <AnimatePresence>
+              {currentView === AppView.VERIFICATION && (
+                <motion.div 
+                  key="verification-screen"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="absolute inset-0 z-[100] bg-white"
+                >
+                  <SkeletonLoader show={!isBackNav && !visitedViews.has(AppView.VERIFICATION)}>
+                    <Verification 
+                      onContinue={handleVerificationSuccess} 
+                      onCancel={() => {
+                        if (preloadedVideoUrl) {
+                          URL.revokeObjectURL(preloadedVideoUrl);
+                          setPreloadedVideoUrl(null);
+                        }
+                        handleSetView(AppView.DASHBOARD, true);
+                      }} 
+                      preloadedVideoUrl={preloadedVideoUrl}
+                      profileImage={userData.profileImage}
+                      profileImageScale={userData.profileImageScale}
+                      profileImageX={userData.profileImageX}
+                      profileImageY={userData.profileImageY}
+                      videoScale={userData.videoScale}
+                      videoX={userData.videoX}
+                      videoY={userData.videoY}
+                    />
+                  </SkeletonLoader>
+                </motion.div>
+              )}
+            </AnimatePresence>
+            <AnimatePresence>
+              {currentView === AppView.PROFILE_DETAIL && (
+                <motion.div 
+                  key="profile-detail-view"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="absolute inset-0 z-50 bg-white"
+                >
+                  <SkeletonLoader show={!isBackNav && !visitedViews.has(AppView.PROFILE_DETAIL)}>
+                    <ProfileDetail 
+                      userName={userData.name} 
+                      profileImage={userData.profileImage} 
+                      profileImageScale={userData.profileImageScale}
+                      profileImageX={userData.profileImageX}
+                      profileImageY={userData.profileImageY}
+                      acceptanceRate={userData.acceptanceRate}
+                      cancellationRate={userData.cancellationRate}
+                      onBack={() => handleSetView(AppView.PROFILE, true)} 
+                      onPublicProfile={() => handleSetView(AppView.PUBLIC_PROFILE)} 
+                    />
+                  </SkeletonLoader>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            <AnimatePresence>
+              {currentView === AppView.PUBLIC_PROFILE && (
+                <motion.div 
+                  key="public-profile-view"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="absolute inset-0 z-50 bg-white"
+                >
+                  <SkeletonLoader show={!isBackNav && !visitedViews.has(AppView.PUBLIC_PROFILE)}>
+                    <PublicProfile 
+                      userName={userData.name} 
+                      profileImage={userData.profileImage} 
+                      profileImageScale={userData.profileImageScale}
+                      profileImageX={userData.profileImageX}
+                      profileImageY={userData.profileImageY}
+                      city={userData.city} 
+                      vehicle={userData.vehicle} 
+                      language={userData.language} 
+                      onBack={() => handleSetView(AppView.PROFILE_DETAIL, true)} 
+                    />
+                  </SkeletonLoader>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            <AnimatePresence>
+              {currentView === AppView.EDIT_PROFILE && (
+                <motion.div 
+                  key="edit-profile-view-container"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="absolute inset-0 z-50 bg-white"
+                >
+                  <EditProfile 
+                    userData={userData} 
+                    onSave={(data) => { 
+                      persistUserData(data); 
+                      // handleSetView(AppView.PROFILE); // Removido para permanecer na página
+                    }} 
+                    onSwitchSession={switchSession}
+                    onRenameSession={renameSession}
+                    onAddSession={addSession}
+                    onDeleteVehicle={() => {
+                      const activeId = userData.vehicles.find((v: any) => v.active)?.id;
+                      if (activeId) {
+                        deleteVehicle(activeId);
+                        handleSetView(AppView.PROFILE, true);
+                      }
+                    }}
+                    onBack={() => handleSetView(AppView.PROFILE, true)} 
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            <AnimatePresence>
+              {currentView === AppView.ACCOUNT && (
+                <motion.div 
+                  key="account-view"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="absolute inset-0 z-50 bg-white"
+                >
+                  <SkeletonLoader show={!isBackNav && !visitedViews.has(AppView.ACCOUNT)}>
+                    <Account vehicleName={userData.vehicle} licensePlate={userData.licensePlate} vehicleImage={userData.vehicleImage} onBack={() => handleSetView(AppView.PROFILE, true)} onLogout={() => { 
+                      localStorage.removeItem(STORAGE_KEYS.IS_LOGGED_IN);
+                      localStorage.removeItem(STORAGE_KEYS.CURRENT_USER_ID);
+                      setIsLoggedIn(false); 
+                      setCurrentUserIdentifier('');
+                      setUserData(DEFAULT_USER_DATA);
+                      handleSetView(AppView.LOGIN); 
+                    }} onDocuments={() => handleSetView(AppView.DOCUMENTS)} onVehicles={() => handleSetView(AppView.VEHICLES)} onPayoutInfo={() => handleSetView(AppView.PAYOUT_INFO)} onOpportunities={() => handleSetView(AppView.OPPORTUNITIES)} onUberAccount={() => handleSetView(AppView.UBER_ACCOUNT)} onAppSettings={() => handleSetView(AppView.APP_SETTINGS)} />
+                  </SkeletonLoader>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            <AnimatePresence>
+              {currentView === AppView.UBER_ACCOUNT && (
+                <motion.div 
+                  key="uber-account-view"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="absolute inset-0 z-[7000] bg-white"
+                >
+                  <SkeletonLoader show={!isBackNav && !visitedViews.has(AppView.UBER_ACCOUNT)}>
+                    <UberAccount 
+                      onBack={() => handleSetView(AppView.ACCOUNT, true)} 
+                      userName={userData.name}
+                      profileImage={userData.profileImage}
+                      profileImageScale={userData.profileImageScale}
+                      profileImageX={userData.profileImageX}
+                      profileImageY={userData.profileImageY}
+                    />
+                  </SkeletonLoader>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            <AnimatePresence>
+              {currentView === AppView.APP_SETTINGS && (
+                <motion.div 
+                  key="app-settings-view"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className={`absolute inset-0 z-[8000] ${isDarkMode ? 'bg-[#121212]' : 'bg-white'}`}
+                >
+                  <SkeletonLoader show={!isBackNav && !visitedViews.has(AppView.APP_SETTINGS)}>
+                    <AppSettings 
+                      onBack={() => handleSetView(AppView.ACCOUNT, true)} 
+                      onNavigate={(v) => handleSetView(v)}
+                      isDarkMode={isDarkMode}
+                      darkModeOption={userData.darkModeOption || DarkModeOption.ALWAYS_OFF}
+                    />
+                  </SkeletonLoader>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            <AnimatePresence>
+              {currentView === AppView.DARK_MODE_SETTINGS && (
+                <motion.div 
+                  key="dark-mode-settings-view"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className={`absolute inset-0 z-[9000] ${isDarkMode ? 'bg-[#121212]' : 'bg-white'}`}
+                >
+                  <SkeletonLoader show={!isBackNav && !visitedViews.has(AppView.DARK_MODE_SETTINGS)}>
+                    <DarkModeSettings 
+                      onBack={() => handleSetView(AppView.APP_SETTINGS, true)}
+                      currentOption={userData.darkModeOption || DarkModeOption.ALWAYS_OFF}
+                      onSelect={(option) => persistUserData({ darkModeOption: option })}
+                      isDarkMode={isDarkMode}
+                    />
+                  </SkeletonLoader>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            <AnimatePresence>
+              {currentView === AppView.PAYOUT_INFO && (
+                <motion.div 
+                  key="payout-info-view"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="absolute inset-0 z-50 bg-white"
+                >
+                  <SkeletonLoader show={!isBackNav && !visitedViews.has(AppView.PAYOUT_INFO)}>
+                    <PayoutInfo 
+                      bankAccount={userData.bankAccount} 
+                      onBack={() => handleSetView(AppView.ACCOUNT, true)} 
+                      onAddBankAccount={() => handleSetView(AppView.ADD_BANK_ACCOUNT)}
+                    />
+                  </SkeletonLoader>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            <AnimatePresence>
+              {currentView === AppView.ADD_BANK_ACCOUNT && (
+                <motion.div 
+                  key="add-bank-account-view"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="absolute inset-0 z-50 bg-white"
+                >
+                  <AddBankAccount 
+                    onBack={() => handleSetView(AppView.PAYOUT_INFO, true)}
+                    onNext={() => handleSetView(AppView.BANK_ACCOUNT_DETAILS)}
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            <AnimatePresence>
+              {currentView === AppView.BANK_ACCOUNT_DETAILS && (
+                <motion.div 
+                  key="bank-account-details-view"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="absolute inset-0 z-50 bg-white"
+                >
+                  <BankAccountDetails 
+                    onBack={() => handleSetView(AppView.ADD_BANK_ACCOUNT, true)}
+                    onNext={() => handleSetView(AppView.PAYOUT_INFO, true)}
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            <AnimatePresence>
+              {currentView === AppView.VEHICLES && (
+                <motion.div 
+                  key="vehicles-view"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="absolute inset-0 z-50 bg-white"
+                >
+                  <SkeletonLoader show={!isBackNav && !visitedViews.has(AppView.VEHICLES)}>
+                    <Vehicles 
+                      vehicles={userData.vehicles} 
+                      onBack={() => handleSetView(AppView.ACCOUNT, true)} 
+                      onAddVehicle={() => handleSetView(AppView.ADD_VEHICLE)} 
+                      onManageVehicles={() => handleSetView(AppView.MANAGE_VEHICLES)}
+                      onSelectVehicle={selectVehicle} 
+                      onDeleteVehicle={deleteVehicle} 
+                    />
+                  </SkeletonLoader>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            <AnimatePresence>
+              {currentView === AppView.MANAGE_VEHICLES && (
+                <motion.div 
+                  key="manage-vehicles-view"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="absolute inset-0 z-50 bg-white"
+                >
+                  <SkeletonLoader show={!isBackNav && !visitedViews.has(AppView.MANAGE_VEHICLES)}>
+                    <ManageVehicles 
+                      vehicles={userData.vehicles} 
+                      onBack={() => handleSetView(AppView.VEHICLES, true)} 
+                      onAddVehicle={() => handleSetView(AppView.ADD_VEHICLE)} 
+                      onSelectVehicle={selectVehicle} 
+                      onDeleteVehicle={deleteVehicle} 
+                    />
+                  </SkeletonLoader>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            <AnimatePresence>
+              {currentView === AppView.ADD_VEHICLE && (
+                <motion.div 
+                  key="add-vehicle-view"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="absolute inset-0 z-50 bg-white"
+                >
+                  <SkeletonLoader show={!isBackNav && !visitedViews.has(AppView.ADD_VEHICLE)}>
+                    <AddVehicle onBack={() => handleSetView(AppView.VEHICLES, true)} onAdd={(name, plate, img) => { addVehicle(name, plate, img); handleSetView(AppView.VEHICLES, true); }} />
+                  </SkeletonLoader>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            <AnimatePresence>
+              {currentView === AppView.DOCUMENTS && (
+                <motion.div 
+                  key="documents-view"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="absolute inset-0 z-50 bg-white"
+                >
+                  <SkeletonLoader show={!isBackNav && !visitedViews.has(AppView.DOCUMENTS)}>
+                    <Documents onBack={() => handleSetView(AppView.ACCOUNT, true)} onViewAll={() => handleSetView(AppView.TRIP_DOCUMENTS)} />
+                  </SkeletonLoader>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            <AnimatePresence>
+              {currentView === AppView.TRIP_DOCUMENTS && (
+                <motion.div 
+                  key="trip-documents-view"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="absolute inset-0 z-50 bg-white"
+                >
+                  <SkeletonLoader show={!isBackNav && !visitedViews.has(AppView.TRIP_DOCUMENTS)}>
+                    <TripDocuments 
+                      onBack={() => handleSetView(AppView.DOCUMENTS, true)} 
+                      vehicles={userData.vehicles}
+                    />
+                  </SkeletonLoader>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            <AnimatePresence>
+              {currentView === AppView.OPPORTUNITIES && (
+                <motion.div 
+                  key="opportunities-view"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="absolute inset-0 z-[5000] bg-white"
+                >
+                  <SkeletonLoader show={!isBackNav && !visitedViews.has(AppView.OPPORTUNITIES)}>
+                    <Opportunities onBack={() => handleSetView(previousView, true)} />
+                  </SkeletonLoader>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            <AnimatePresence>
+              {currentView === AppView.REFERRALS && (
+                <motion.div 
+                  key="referrals-view"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="absolute inset-0 z-[6000] bg-white"
+                >
+                  <SkeletonLoader show={!isBackNav && !visitedViews.has(AppView.REFERRALS)}>
+                    <Referrals onBack={() => handleSetView(previousView, true)} />
+                  </SkeletonLoader>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </motion.div>
         )}
-
-        <AnimatePresence>
-          {currentView === AppView.ACCOUNT && (
-            <div 
-              className="absolute inset-0 z-50 bg-white"
-            >
-              <SkeletonLoader show={!isBackNav && !visitedViews.has(AppView.ACCOUNT)}>
-                <Account vehicleName={userData.vehicle} licensePlate={userData.licensePlate} vehicleImage={userData.vehicleImage} onBack={() => handleSetView(AppView.PROFILE, true)} onLogout={() => { 
-                  localStorage.removeItem(STORAGE_KEYS.IS_LOGGED_IN);
-                  localStorage.removeItem(STORAGE_KEYS.CURRENT_USER_ID);
-                  setIsLoggedIn(false); 
-                  setCurrentUserIdentifier('');
-                  setUserData(DEFAULT_USER_DATA);
-                  handleSetView(AppView.LOGIN); 
-                }} onDocuments={() => handleSetView(AppView.DOCUMENTS)} onVehicles={() => handleSetView(AppView.VEHICLES)} onPayoutInfo={() => handleSetView(AppView.PAYOUT_INFO)} onOpportunities={() => handleSetView(AppView.OPPORTUNITIES)} onUberAccount={() => handleSetView(AppView.UBER_ACCOUNT)} onAppSettings={() => handleSetView(AppView.APP_SETTINGS)} />
-              </SkeletonLoader>
-            </div>
-          )}
-        </AnimatePresence>
-
-        <AnimatePresence>
-          {currentView === AppView.UBER_ACCOUNT && (
-            <div 
-              className="absolute inset-0 z-[7000] bg-white"
-            >
-              <SkeletonLoader show={!isBackNav && !visitedViews.has(AppView.UBER_ACCOUNT)}>
-                <UberAccount 
-                  onBack={() => handleSetView(AppView.ACCOUNT, true)} 
-                  userName={userData.name}
-                  profileImage={userData.profileImage}
-                  profileImageScale={userData.profileImageScale}
-                  profileImageX={userData.profileImageX}
-                  profileImageY={userData.profileImageY}
-                />
-              </SkeletonLoader>
-            </div>
-          )}
-        </AnimatePresence>
-
-        <AnimatePresence>
-          {currentView === AppView.APP_SETTINGS && (
-            <div 
-              className={`absolute inset-0 z-[8000] ${isDarkMode ? 'bg-[#121212]' : 'bg-white'}`}
-            >
-              <SkeletonLoader show={!isBackNav && !visitedViews.has(AppView.APP_SETTINGS)}>
-                <AppSettings 
-                  onBack={() => handleSetView(AppView.ACCOUNT, true)} 
-                  onNavigate={(v) => handleSetView(v)}
-                  isDarkMode={isDarkMode}
-                  darkModeOption={userData.darkModeOption || DarkModeOption.ALWAYS_OFF}
-                />
-              </SkeletonLoader>
-            </div>
-          )}
-        </AnimatePresence>
-
-        <AnimatePresence>
-          {currentView === AppView.DARK_MODE_SETTINGS && (
-            <div 
-              className={`absolute inset-0 z-[9000] ${isDarkMode ? 'bg-[#121212]' : 'bg-white'}`}
-            >
-              <SkeletonLoader show={!isBackNav && !visitedViews.has(AppView.DARK_MODE_SETTINGS)}>
-                <DarkModeSettings 
-                  onBack={() => handleSetView(AppView.APP_SETTINGS, true)}
-                  currentOption={userData.darkModeOption || DarkModeOption.ALWAYS_OFF}
-                  onSelect={(option) => persistUserData({ darkModeOption: option })}
-                  isDarkMode={isDarkMode}
-                />
-              </SkeletonLoader>
-            </div>
-          )}
-        </AnimatePresence>
-
-        <AnimatePresence>
-          {currentView === AppView.PAYOUT_INFO && (
-            <div 
-              className="absolute inset-0 z-50 bg-white"
-            >
-              <SkeletonLoader show={!isBackNav && !visitedViews.has(AppView.PAYOUT_INFO)}>
-                <PayoutInfo 
-                  bankAccount={userData.bankAccount} 
-                  onBack={() => handleSetView(AppView.ACCOUNT, true)} 
-                  onAddBankAccount={() => handleSetView(AppView.ADD_BANK_ACCOUNT)}
-                />
-              </SkeletonLoader>
-            </div>
-          )}
-        </AnimatePresence>
-
-        <AnimatePresence>
-          {currentView === AppView.ADD_BANK_ACCOUNT && (
-            <div 
-              className="absolute inset-0 z-50 bg-white"
-            >
-              <AddBankAccount 
-                onBack={() => handleSetView(AppView.PAYOUT_INFO, true)}
-                onNext={() => handleSetView(AppView.BANK_ACCOUNT_DETAILS)}
-              />
-            </div>
-          )}
-        </AnimatePresence>
-
-        <AnimatePresence>
-          {currentView === AppView.BANK_ACCOUNT_DETAILS && (
-            <div 
-              className="absolute inset-0 z-50 bg-white"
-            >
-              <BankAccountDetails 
-                onBack={() => handleSetView(AppView.ADD_BANK_ACCOUNT, true)}
-                onNext={() => handleSetView(AppView.PAYOUT_INFO, true)}
-              />
-            </div>
-          )}
-        </AnimatePresence>
-
-        <AnimatePresence>
-          {currentView === AppView.VEHICLES && (
-            <div 
-              className="absolute inset-0 z-50 bg-white"
-            >
-              <SkeletonLoader show={!isBackNav && !visitedViews.has(AppView.VEHICLES)}>
-                <Vehicles 
-                  vehicles={userData.vehicles} 
-                  onBack={() => handleSetView(AppView.ACCOUNT, true)} 
-                  onAddVehicle={() => handleSetView(AppView.ADD_VEHICLE)} 
-                  onManageVehicles={() => handleSetView(AppView.MANAGE_VEHICLES)}
-                  onSelectVehicle={selectVehicle} 
-                  onDeleteVehicle={deleteVehicle} 
-                />
-              </SkeletonLoader>
-            </div>
-          )}
-        </AnimatePresence>
-
-        <AnimatePresence>
-          {currentView === AppView.MANAGE_VEHICLES && (
-            <div 
-              className="absolute inset-0 z-50 bg-white"
-            >
-              <SkeletonLoader show={!isBackNav && !visitedViews.has(AppView.MANAGE_VEHICLES)}>
-                <ManageVehicles 
-                  vehicles={userData.vehicles} 
-                  onBack={() => handleSetView(AppView.VEHICLES, true)} 
-                  onAddVehicle={() => handleSetView(AppView.ADD_VEHICLE)} 
-                  onSelectVehicle={selectVehicle} 
-                  onDeleteVehicle={deleteVehicle} 
-                />
-              </SkeletonLoader>
-            </div>
-          )}
-        </AnimatePresence>
-
-        <AnimatePresence>
-          {currentView === AppView.ADD_VEHICLE && (
-            <div 
-              className="absolute inset-0 z-50 bg-white"
-            >
-              <SkeletonLoader show={!isBackNav && !visitedViews.has(AppView.ADD_VEHICLE)}>
-                <AddVehicle onBack={() => handleSetView(AppView.VEHICLES, true)} onAdd={(name, plate, img) => { addVehicle(name, plate, img); handleSetView(AppView.VEHICLES, true); }} />
-              </SkeletonLoader>
-            </div>
-          )}
-        </AnimatePresence>
-
-        <AnimatePresence>
-          {currentView === AppView.DOCUMENTS && (
-            <div 
-              className="absolute inset-0 z-50 bg-white"
-            >
-              <SkeletonLoader show={!isBackNav && !visitedViews.has(AppView.DOCUMENTS)}>
-                <Documents onBack={() => handleSetView(AppView.ACCOUNT, true)} onViewAll={() => handleSetView(AppView.TRIP_DOCUMENTS)} />
-              </SkeletonLoader>
-            </div>
-          )}
-        </AnimatePresence>
-
-        <AnimatePresence>
-          {currentView === AppView.TRIP_DOCUMENTS && (
-            <div 
-              className="absolute inset-0 z-50 bg-white"
-            >
-              <SkeletonLoader show={!isBackNav && !visitedViews.has(AppView.TRIP_DOCUMENTS)}>
-                <TripDocuments 
-                  onBack={() => handleSetView(AppView.DOCUMENTS, true)} 
-                  vehicles={userData.vehicles}
-                />
-              </SkeletonLoader>
-            </div>
-          )}
-        </AnimatePresence>
-
-        <AnimatePresence>
-          {currentView === AppView.OPPORTUNITIES && (
-            <div 
-              className="absolute inset-0 z-[5000] bg-white"
-            >
-              <SkeletonLoader show={!isBackNav && !visitedViews.has(AppView.OPPORTUNITIES)}>
-                <Opportunities onBack={() => handleSetView(previousView, true)} />
-              </SkeletonLoader>
-            </div>
-          )}
-        </AnimatePresence>
-
-        <AnimatePresence>
-          {currentView === AppView.REFERRALS && (
-            <div 
-              className="absolute inset-0 z-[6000] bg-white"
-            >
-              <SkeletonLoader show={!isBackNav && !visitedViews.has(AppView.REFERRALS)}>
-                <Referrals onBack={() => handleSetView(previousView, true)} />
-              </SkeletonLoader>
-            </div>
-          )}
-        </AnimatePresence>
-      </>
+      </AnimatePresence>
     );
   };
 
